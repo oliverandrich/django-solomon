@@ -1,5 +1,15 @@
 # django-solomon
 
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/oliverandrich/django-solomon/test.yml?style=flat-square)
+[![PyPI](https://img.shields.io/pypi/v/django-solomon.svg?style=flat-square)](https://pypi.org/project/django-solomon/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square)](https://github.com/psf/black)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+![GitHub](https://img.shields.io/github/license/oliverandrich/django-solomon?style=flat-square)
+![Django Versions](https://img.shields.io/pypi/frameworkversions/django/django-solomon)
+![Python Versions](https://img.shields.io/pypi/pyversions/django-solomon)
+[![Downloads](https://static.pepy.tech/badge/django-solomon)](https://pepy.tech/project/django-solomon)
+[![Downloads / Month](https://pepy.tech/badge/django-solomon/month)](<https://pepy.tech/project/django-solomon>)
+
 django-solomon is a magic link authentication library for the Django framework.
 
 ## Why is it named djngo-solomon?
@@ -60,4 +70,4 @@ uvx --with tox-uv tox
 
 ## License
 
-This software is licensed under [MIT license](https://github.com/oliverandrich/django-tailwind-cli/blob/main/LICENSE).
+This software is licensed under [MIT license](https://github.com/oliverandrich/django-solomon/blob/main/LICENSE).

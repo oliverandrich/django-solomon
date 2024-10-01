@@ -1,10 +1,10 @@
+import ipaddress
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.base_user import AbstractBaseUser
 
 
-def get_or_create_user(
-    email: str, username: str = "", first_name: str = "", last_name: str = ""
-) -> AbstractBaseUser:
+def get_or_create_user(email: str) -> AbstractBaseUser:
     User = get_user_model()  # noqa: N806
 
     email = email.lower()
@@ -17,15 +17,20 @@ def get_or_create_user(
     user_fields = [field.name for field in User._meta.get_fields()]
 
     user_details = {"email": email}
-    if "username" in user_fields:
-        user_details["username"] = username or email
-    if "first_name" in user_fields and first_name:
-        user_details["first_name"] = first_name
-    if "last_name" in user_fields and last_name:
-        user_details["last_name"] = last_name
-    if "full_name" in user_fields:
-        user_details["full_name"] = f"{first_name} {last_name}".strip()
-    if "name" in user_fields:
-        user_details["name"] = f"{first_name} {last_name}".strip()
+    if "username" in user_fields:  # pragma: no cov
+        user_details["username"] = email
 
-    return User.objects.create(**user_details)
+    user = User.objects.create(**user_details)
+    user.set_unusable_password()
+    user.save()
+
+    return user
+
+
+def anonymize_ip(ip_address, ipv4_mask=16, ipv6_mask=64):
+    ip = ipaddress.ip_address(ip_address)
+    if ip.version == 4:
+        network = ipaddress.IPv4Network(f"{ip}/{ipv4_mask}", strict=False)
+    else:
+        network = ipaddress.IPv6Network(f"{ip}/{ipv6_mask}", strict=False)
+    return str(network.network_address)

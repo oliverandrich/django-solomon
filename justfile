@@ -1,61 +1,80 @@
 set export
 set dotenv-load
 
-VENV_DIRNAME := ".venv"
 DJANGO_SETTINGS_MODULE := "tests.settings"
 
 @_default:
     just --list
 
+[private]
+@check_uv:
+    if ! command -v uv &> /dev/null; then \
+        echo "uv could not be found. Exiting."; \
+        exit; \
+    fi
+
+    if ! command -v uvx &> /dev/null; then \
+        echo "uvx could not be found. Exiting."; \
+        exit; \
+    fi
+
+
 # setup development environment
 @bootstrap:
-    if [ -x $VENV_DIRNAME ]; then \
+    if [ -x .env ]; then \
         echo "Already bootstraped. Exiting."; \
         exit; \
     fi
 
-    echo "Creating virtual env in .venv"
-    just create_venv
+    echo "Creating .env file"
+    echo "# Required for unittest discovery in VSCode." >> .env
+    echo "MANAGE_PY_PATH='manage.py'" >> .env
+
+    echo "Creating .envrc file for direnv"
+    echo "test -d .venv || uv sync --frozen" >> .envrc
+    echo "source .venv/bin/activate" >> .envrc
+    test -x "$(command -v direnv)" && direnv allow
 
     echo "Installing dependencies"
     just upgrade
 
-# create a virtual environment
-@create_venv:
-    [ -d $VENV_DIRNAME ] || uv venv $VENV_DIRNAME
+@makemigrations: check_uv
+    uv run -m django makemigrations --settings=$DJANGO_SETTINGS_MODULE
 
 # build release
-@build:
+@build: check_uv
     uv build
 
 # publish release
-@publish: build
+@publish: check_uv build
     uv publish
 
 # upgrade/install all dependencies defined in pyproject.toml
-@upgrade: create_venv
+@upgrade: check_uv
     uv sync --all-extras
 
 # run pre-commit rules on all files
-@lint: create_venv
+@lint: check_uv
     uvx --with pre-commit-uv pre-commit run --all-files
 
 # run test suite
-@test: create_venv
-    uv run pytest --cov --cov-report=html --cov-report=term
+@test: check_uv
+    uv run -m coverage run -m django test --settings=$DJANGO_SETTINGS_MODULE --failfast
+    uv run -m coverage report
+    uv run -m coverage html
 
 # run test suite
-@test-all: create_venv
+@test-all: check_uv
     uvx --with tox-uv tox
 
 # serve docs during development
-@serve-docs:
+@serve-docs: check_uv
     uvx --with mkdocs-material mkdocs serve
 
 # build documenation
-@build-docs:
+@build-docs: check_uv
     uvx --with mkdocs-material mkdocs build
 
 # publish documentation on github
-@publish-docs: build-docs
+@publish-docs: check_uv build-docs
     uvx --with mkdocs-material mkdocs gh-deploy --force

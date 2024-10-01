@@ -1,14 +1,20 @@
+import re
 from datetime import timedelta
 from typing import Optional
 
-import jwt
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
 from django.db import models
 from django.http import HttpRequest
+from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 
 from solomon.conf import settings
+from solomon.utils import anonymize_ip
 
-TOKEN_ALGORITHM = "HS256"
+User = get_user_model()
 
 
 class SolomonTokenManager(models.Manager):
@@ -17,13 +23,28 @@ class SolomonTokenManager(models.Manager):
         email: str,
         *,
         redirect_url: Optional[str] = None,
+        ip_address: Optional[str] = None,
     ) -> "SolomonToken":
+        """
+        Creates a SolomonToken instance from the provided email.
+
+        Args:
+            email (str): The email address to associate with the token.
+            redirect_url (Optional[str]): An optional URL to redirect to. Defaults to None.
+
+        Returns:
+            SolomonToken: The created SolomonToken instance.
+        """
+        if ip_address and settings.SOLOMON_ANONYMIZE_IP_ADDRESS:
+            ip_address = anonymize_ip(ip_address)
+
         return SolomonToken.objects.create(
             email=email,
             redirect_url=redirect_url or "",
+            ip_address=ip_address,
         )
 
-    def verify_token(self, token: str) -> Optional["SolomonToken"]:
+    def verify_token(self, pk: int, token_string: str) -> Optional["SolomonToken"]:
         """
         Verifies the provided JWT token and returns the corresponding SolomonToken object if valid.
 
@@ -34,28 +55,21 @@ class SolomonTokenManager(models.Manager):
             Optional["SolomonToken"]: The SolomonToken object if the token is valid and not expired,
                                       otherwise None.
         """
-        try:
-            decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=[TOKEN_ALGORITHM])
-        except jwt.ExpiredSignatureError:
-            return None
-
         return (
             self.get_queryset()
-            .filter(
-                pk=decoded_token["jti"],
-                email=decoded_token["email"],
-            )
+            .filter(pk=pk, token_string=token_string, expiry_date__gte=timezone.now())
             .first()
         )
 
 
 class SolomonToken(models.Model):
     email = models.EmailField()
-    expiry_date = models.DateTimeField()
     redirect_url = models.TextField()
-    disabled = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     consumed_at = models.DateTimeField(null=True, blank=True)
+    expiry_date = models.DateTimeField(editable=False)
+    token_string = models.CharField(max_length=128, editable=False)
+    ip_address = models.GenericIPAddressField(null=True, editable=False)
 
     objects: SolomonTokenManager = SolomonTokenManager()
 
@@ -80,28 +94,43 @@ class SolomonToken(models.Model):
             self.expiry_date = timezone.now() + timedelta(
                 seconds=settings.SOLOMON_MAX_TOKEN_LIFETIME
             )
+            self.token_string = get_random_string(128)
         return super().save(*args, **kwargs)
 
-    def send_email(self, request: HttpRequest) -> None:
-        pass
+    def send_email(self, request: HttpRequest, *, signup: bool = False) -> None:
+        context = {
+            "verify_url": self.get_verify_url(request),
+            "signup": signup,
+        }
 
-    @property
-    def token_string(self) -> str:
+        subject = render_to_string(settings.SOLOMON_EMAIL_SUBJECT_TEMPLATE, context=context)
+        subject = re.sub(r"\s+", " ", subject)
+        text_content = render_to_string(settings.SOLOMON_EMAIL_TXT_TEMPLATE, context=context)
+        html_content = render_to_string(settings.SOLOMON_EMAIL_HTML_TEMPLATE, context=context)
+
+        send_mail(
+            subject.strip(),
+            text_content.strip(),
+            settings.DEFAULT_FROM_EMAIL,
+            [self.email],
+            html_message=html_content.strip(),
+        )
+
+    def get_verify_url(self, request: HttpRequest) -> str:
         """
-        Generates a JWT token string for the user.
-
-        The token includes the user's email, an expiration date, and a unique identifier (jti).
-        It is encoded using the secret key defined in the settings and the specified algorithm.
+        Generates a URL that can be used to verify the token.
 
         Returns:
-            str: The encoded JWT token string.
+            str: The URL to verify the token.
         """
-        return jwt.encode(
-            {
-                "email": self.email,
-                "exp": self.expiry_date,
-                "jti": self.pk,
-            },
-            settings.SECRET_KEY,
-            algorithm=TOKEN_ALGORITHM,
-        )
+        url = reverse("solomon:verify", kwargs={"jwt_token": self.token_string})
+        return request.build_absolute_uri(url)
+
+    def get_user(self):
+        """
+        Retrieves the User object that matches the email of the current instance.
+
+        Returns:
+            User: The User object with a matching email, or None if no match is found.
+        """
+        return User.objects.filter(email=self.email).first()
