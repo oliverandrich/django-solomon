@@ -244,3 +244,4 @@ $RECYCLE.BIN/
 # direnv
 .direnv
 .envrc
+.aider*

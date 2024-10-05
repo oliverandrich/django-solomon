@@ -44,6 +44,7 @@ TEMPLATES: list[dict[str, Any]] = [
         "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
+            "debug": True,
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
@@ -66,3 +67,8 @@ TEST_RUNNER = "django_rich.test.RichRunner"
 ROOT_URLCONF = "tests.urls"
 
 LOGIN_URL = "solomon:login"
+
+AUTHENTICATION_BACKENDS = [
+    "solomon.backends.SolomonBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]

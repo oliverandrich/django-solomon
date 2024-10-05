@@ -8,52 +8,35 @@ from solomon.models import SolomonToken
 
 
 class SolomonBackend:
-    """
-    Authentication backend for Solomon tokens.
-
-    This backend provides methods to authenticate users based on Solomon tokens
-    and to retrieve user instances by their ID.
-    """
     def authenticate(
+        self, request: HttpRequest, token_pk: Optional[int] = None, token_string: Optional[str] = None
+    ) -> Optional[AbstractBaseUser]:
         """
-        Authenticate a user using a Solomon token.
+        Authenticates a user based on a provided token primary key and token string.
 
         Args:
-            request (HttpRequest): The HTTP request object.
-            token_pk (Optional[int]): The primary key of the Solomon token.
-            token_string (Optional[str]): The token string.
+            request (HttpRequest): The HTTP request object. token_pk (Optional[int]): The primary key of the token.
+            token_string (Optional[str]): The string representation of the token.
 
         Returns:
-            Optional[AbstractBaseUser]: The authenticated user or None if authentication fails.
+            Optional[AbstractBaseUser]: The authenticated user if the token is valid and can be consumed, otherwise
+            None.
         """
-        self,
-        request: HttpRequest,
-        token_pk: Optional[int] = None,
-        token_string: Optional[str] = None,
-    ) -> Optional[AbstractBaseUser]:
-        solomon_token = SolomonToken.objects.filter(pk=token_pk, token_string=token_string).first()
-        if not solomon_token:
-            return
+        token = SolomonToken.objects.filter(pk=token_pk, token_string=token_string).first()
+        if not token or not token.is_valid(request):
+            return None
 
-        if not solomon_token.is_valid(request):
-            return
-
-        solomon_token.consume()
-
-        return solomon_token.get_user()
+        token.consume()
+        return token.get_user()
 
     def get_user(self, user_id: int) -> Optional[AbstractBaseUser]:
         """
-        Retrieve a user by their ID.
+        Retrieve a user instance by its user ID.
 
         Args:
             user_id (int): The ID of the user to retrieve.
 
         Returns:
-            Optional[AbstractBaseUser]: The user instance or None if the user does not exist.
+            Optional[AbstractBaseUser]: The user instance if found, otherwise None.
         """
-        user_model = get_user_model()
-        try:
-            return user_model.objects.get(pk=user_id)
-        except user_model.DoesNotExist:
-            return None
+        return get_user_model().objects.filter(pk=user_id).first()

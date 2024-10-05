@@ -59,9 +59,7 @@ DJANGO_SETTINGS_MODULE := "tests.settings"
 
 # run test suite
 @test: check_uv
-    uv run -m coverage run -m django test --settings=$DJANGO_SETTINGS_MODULE --failfast
-    uv run -m coverage report
-    uv run -m coverage html
+    uv run pytest --cov --cov-report=html --cov-report=term
 
 # run test suite
 @test-all: check_uv

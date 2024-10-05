@@ -15,4 +15,9 @@ class SesameAuthAppConfig(AppConf):
 
     COMPLETE_PROFILE_URL = None
 
+    REQUIRE_SAME_IP = True
     ANONYMIZE_IP_ADDRESS = False
+    REQUIRE_SAME_BROWSER = True
+    COOKIE_NAME = "solomon"
+
+    FORM_LABEL_SUFFIX = ""

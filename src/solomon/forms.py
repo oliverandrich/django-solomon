@@ -2,22 +2,20 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 
-from solomon.conf import settings
+from solomon.models import SolomonToken
 
 User = get_user_model()
 
 
-class LoginForm(forms.Form):
-    email = forms.EmailField(
-        label=_("E-mail address"),
-        widget=forms.EmailInput(attrs={"autofocus": "autofocus"}),
-        required=True,
-    )
-    redirect_url = forms.CharField(
-        widget=forms.HiddenInput(),
-        required=False,
-        empty_value=settings.LOGIN_REDIRECT_URL,
-    )
+class LoginForm(forms.ModelForm):
+    class Meta:
+        model = SolomonToken
+        fields = ["email", "redirect_url", "ip_address"]
+        widgets = {
+            "email": forms.EmailInput(attrs={"autofocus": "autofocus"}),
+            "redirect_url": forms.HiddenInput(),
+            "ip_address": forms.HiddenInput(),
+        }
 
     def clean_email(self):
         email = self.cleaned_data["email"].lower()
