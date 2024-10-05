@@ -8,7 +8,24 @@ from solomon.models import SolomonToken
 
 
 class SolomonBackend:
+    """
+    Authentication backend for Solomon tokens.
+
+    This backend provides methods to authenticate users based on Solomon tokens
+    and to retrieve user instances by their ID.
+    """
     def authenticate(
+        """
+        Authenticate a user using a Solomon token.
+
+        Args:
+            request (HttpRequest): The HTTP request object.
+            token_pk (Optional[int]): The primary key of the Solomon token.
+            token_string (Optional[str]): The token string.
+
+        Returns:
+            Optional[AbstractBaseUser]: The authenticated user or None if authentication fails.
+        """
         self,
         request: HttpRequest,
         token_pk: Optional[int] = None,
@@ -26,6 +43,15 @@ class SolomonBackend:
         return solomon_token.get_user()
 
     def get_user(self, user_id: int) -> Optional[AbstractBaseUser]:
+        """
+        Retrieve a user by their ID.
+
+        Args:
+            user_id (int): The ID of the user to retrieve.
+
+        Returns:
+            Optional[AbstractBaseUser]: The user instance or None if the user does not exist.
+        """
         user_model = get_user_model()
         try:
             return user_model.objects.get(pk=user_id)
