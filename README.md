@@ -16,6 +16,25 @@ django-solomon is a magic link authentication library for the Django framework, 
 
 Solomon is the unofficial name of the cat of Ernesto Blofeld. This library was started in autumn 2024. And autumn in my home means that my beloved cat starts to spend his whole day on my desk [curled up in the crook of my arm](https://social.tchncs.de/@oliverandrich/113214196404673039). Being forced to code in an Ernesto-Blofeld-position, it was natural to pick this name.
 
+## Features
+
+- Simple workflow for the user:
+  - Enter email address on the login page.
+  - Email with the verification link is sent to this address.
+  - User clicks on the link and is immediately logged in.
+- No seperate views for login and signup. This library believes that there is no difference. But if you need to collect further information after the first login of a new user, you can inject one of your views to collect this data.
+- Secure defaults
+  - Require same ip address for login and verification.
+  - Require same browser for login and verification.
+  - Magic expires after a configured timedelta. Default: 5 minutes.
+  - If you need more relaxed settings, you can change the corresponding settings.
+- Privacy settings
+  - By default it stores the full ip address for the authentication process.
+  - For increased privacy you can activate anonymisation. For IPv4 the last two octets are anonymized. For IPv6 only the first 64 bits are stored.
+- The form label suffix can be changed by a setting.
+- All forms and other user-facing strings are wrapped for proper i18n via the standard facilities of Django.
+- All templates can be customized - for the web frontend and for the emails.
+
 ## Installation
 
 1. Install the library.
@@ -66,25 +85,6 @@ Solomon is the unofficial name of the cat of Ernesto Blofeld. This library was s
 Enjoy!
 
 Checkout the [documentation](https://django-solomon.andrich.me/) if you want to further tweak the login process.
-
-## Features
-
-- Simple workflow for the user:
-  - Enter email address on the login page.
-  - Email with the verification link is sent to this address.
-  - User clicks on the link and is immediately logged in.
-- No seperate views for login and signup. This library believes that there is no difference. But if you need to collect further information after the first login of a new user, you can inject one of your views to collect this data.
-- Secure defaults
-  - Require same ip address for login and verification.
-  - Require same browser for login and verification.
-  - Magic expires after a configured timedelta. Default: 5 minutes.
-  - If you need more relaxed settings, you can change the corresponding settings.
-- Privacy settings
-  - By default it stores the full ip address for the authentication process.
-  - For increased privacy you can activate anonymisation. For IPv4 the last two octets are anonymized. For IPv6 only the first 64 bits are stored.
-- The form label suffix can be changed by a setting.
-- All forms and other user-facing strings are wrapped for proper i18n via the standard facilities of Django.
-- All templates can be customized - for the web frontend and for the emails.
 
 ## Requirements
 
