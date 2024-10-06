@@ -69,6 +69,6 @@ ROOT_URLCONF = "tests.urls"
 LOGIN_URL = "solomon:login"
 
 AUTHENTICATION_BACKENDS = [
-    "solomon.backends.SolomonBackend",
     "django.contrib.auth.backends.ModelBackend",
+    "solomon.backends.SolomonBackend",
 ]
