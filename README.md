@@ -2,8 +2,8 @@
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/oliverandrich/django-solomon/test.yml?style=flat-square)
 [![PyPI](https://img.shields.io/pypi/v/django-solomon.svg?style=flat-square)](https://pypi.org/project/django-solomon/)
-[![ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
-[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v0.json)](https://github.com/astral-sh/ruff)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![GitHub](https://img.shields.io/github/license/oliverandrich/django-solomon?style=flat-square)
 ![Django Versions](https://img.shields.io/pypi/frameworkversions/django/django-solomon)
 ![Python Versions](https://img.shields.io/pypi/pyversions/django-solomon)
